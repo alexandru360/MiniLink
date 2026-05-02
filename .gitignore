@@ -1,3 +1,15 @@
+# Personal notes & scratch files
+stuff.txt
+
+# IDE folders
+.idea/
+.vs/
+.vscode/
+
+# .NET build output
+bin/
+obj/
+
 # Logs
 logs
 *.log
