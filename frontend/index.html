@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MiniLink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #060a0f;
+      color: #c8d8e8;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(0,80,40,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0,40,80,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(20,0,60,0.15) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(6,10,15,0.95) 100%),
+        linear-gradient(135deg, #060a0f 0%, #0a1520 40%, #060d0a 70%, #060a0f 100%);
+      border-bottom: 1px solid rgba(0,255,100,0.15);
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 25%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 45%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 75%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.5) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 700px; }
+
+    .hero-eyebrow {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      letter-spacing: 6px;
+      color: #00ff64;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(42px, 8vw, 82px);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      line-height: 1.0;
+      color: #ffffff;
+      text-shadow:
+        0 0 40px rgba(0,255,100,0.3),
+        0 0 80px rgba(0,255,100,0.1);
+      margin-bottom: 16px;
+    }
+
+    .hero-title span { color: #00ff64; }
+
+    .hero-subtitle {
+      font-size: 16px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #7a9ab0;
+      margin-bottom: 50px;
+    }
+
+    .form-wrapper {
+      display: flex;
+      gap: 0;
+      max-width: 580px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .form-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(90deg, rgba(0,255,100,0.4), rgba(0,150,255,0.2), rgba(0,255,100,0.4));
+      border-radius: 2px;
+      z-index: 0;
+    }
+
+    input[type="url"] {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      background: rgba(6,15,25,0.95);
+      border: none;
+      outline: none;
+      color: #c8d8e8;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      letter-spacing: 1px;
+      padding: 16px 20px;
+      border-radius: 2px 0 0 2px;
+    }
+
+    input[type="url"]::placeholder { color: #3a5060; }
+    input[type="url"]:focus { background: rgba(0,20,35,0.98); }
+
+    button[type="submit"] {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, #00cc52 0%, #009940 100%);
+      border: none;
+      color: #000;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 16px 28px;
+      cursor: pointer;
+      border-radius: 0 2px 2px 0;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    button[type="submit"]:hover {
+      background: linear-gradient(180deg, #00ff64 0%, #00cc52 100%);
+      box-shadow: 0 0 20px rgba(0,255,100,0.5);
+    }
+
+    button[type="submit"]:active { transform: scale(0.98); }
+
+    #result {
+      margin-top: 32px;
+      min-height: 40px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    #result.loading { color: #7a9ab0; animation: pulse 1s ease-in-out infinite; }
+    #result.error { color: #ff4444; text-transform: uppercase; }
+    #result.success { color: #c8d8e8; }
+
+    #result a {
+      color: #00ff64;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0,255,100,0.4);
+      padding-bottom: 2px;
+      transition: all 0.2s;
+    }
+
+    #result a:hover {
+      color: #fff;
+      border-bottom-color: #00ff64;
+      text-shadow: 0 0 10px rgba(0,255,100,0.6);
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .copy-btn {
+      display: inline-block;
+      margin-top: 12px;
+      background: transparent;
+      border: 1px solid rgba(0,255,100,0.3);
+      color: #00ff64;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(0,255,100,0.1);
+      border-color: #00ff64;
+      box-shadow: 0 0 12px rgba(0,255,100,0.3);
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ff64, transparent);
+      margin: 0 auto 50px;
+    }
+
+    .features {
+      position: relative;
+      z-index: 1;
+      padding: 80px 20px;
+      text-align: center;
+      background: linear-gradient(180deg, #060a0f 0%, #080f18 50%, #060a0f 100%);
+      border-bottom: 1px solid rgba(0,255,100,0.08);
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 6px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #4a6880;
+      text-transform: uppercase;
+      margin-bottom: 50px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: rgba(0,20,35,0.6);
+      border: 1px solid rgba(0,255,100,0.08);
+      padding: 36px 24px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ff64, transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover { background: rgba(0,30,50,0.8); border-color: rgba(0,255,100,0.2); }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 8px rgba(0,255,100,0.4));
+    }
+
+    .feature-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: #4a6880;
+      line-height: 1.6;
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 30px 20px;
+      text-align: center;
+      border-top: 1px solid rgba(0,255,100,0.08);
+    }
+
+    footer p {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: #1a3040;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-eyebrow">Link Shortener &mdash; Tactical Edition</p>
+      <h1 class="hero-title">Mini<span>Link</span></h1>
+      <p class="hero-subtitle">Scurtează orice URL instant</p>
+
+      <form id="form" class="form-wrapper">
+        <input type="url" id="url" placeholder="https://exemplu.com" required autocomplete="off" />
+        <button type="submit">Scurtează</button>
+      </form>
+
+      <div id="result"></div>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2 class="section-title">Capabilități</h2>
+    <p class="section-sub">Tehnologie serverless pe AWS</p>
+    <div class="divider"></div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <p class="feature-name">Instant</p>
+        <p class="feature-desc">Link-uri generate în milisecunde prin Lambda</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📡</span>
+        <p class="feature-name">Global</p>
+        <p class="feature-desc">Distribuit prin CloudFront în toată lumea</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <p class="feature-name">Analytics</p>
+        <p class="feature-desc">Fiecare click tracked în DynamoDB</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛡️</span>
+        <p class="feature-name">Securizat</p>
+        <p class="feature-desc">Expire automat după 30 de zile</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MiniLink &mdash; Built on AWS Free Tier</p>
+  </footer>
+
+  <script>
+    const API = '/api';
+
+    document.getElementById('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const resultEl = document.getElementById('result');
+      const url = document.getElementById('url').value;
+
+      resultEl.className = 'loading';
+      resultEl.textContent = 'PROCESARE...';
+
+      try {
+        const res = await fetch(`${API}/links`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+
+        if (data.shortUrl) {
+          resultEl.className = 'success';
+          resultEl.innerHTML = `
+            LINK SCURT: <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>
+            <br/>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${data.shortUrl}').then(() => this.textContent='COPIAT ✓')">
+              Copiază Link
+            </button>
+          `;
+        } else {
+          resultEl.className = 'error';
+          resultEl.textContent = 'EROARE — URL INVALID';
+        }
+      } catch {
+        resultEl.className = 'error';
+        resultEl.textContent = 'EROARE — ÎNCEARCĂ DIN NOU';
+      }
+    });
+  </script>
+</body>
+</html>

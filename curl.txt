@@ -1,0 +1,5 @@
+curl -X POST https://4z9xy96gih.execute-api.eu-north-1.amazonaws.com/links \
+        -H "Content-Type: application/json" \
+        -d '{"url":"https://google.com"}'
+
+curl -L https://4z9xy96gih.execute-api.eu-north-1.amazonaws.com/ab12cd

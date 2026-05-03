@@ -28,7 +28,7 @@ public class Function
             _maxDays = int.Parse(r2.Parameter.Value);
         }
 
-        var body = JsonSerializer.Deserialize<CreateLinkRequest>(request.Body ?? "{}");
+        var body = JsonSerializer.Deserialize<CreateLinkRequest>(request.Body ?? "{}", new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (body?.Url == null || !Uri.TryCreate(body.Url, UriKind.Absolute, out _))
             return BadRequest("url lipsă sau invalid");
 

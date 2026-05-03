@@ -658,6 +658,13 @@ Functions → Create function:
 6. Bifează **Report batch item failures** — important, altfel la o eroare parțială se reprocessează tot batch-ul
 7. Click **Add**
 
+> **Problemă frecventă — eroare la adăugarea trigger-ului:**
+> Dacă primești eroarea `The function execution role does not have permissions to call ReceiveMessage on SQS`, înseamnă că Lambda a creat automat un rol nou (în loc să folosească `minilink-lambda-role`). Fix rapid:
+> 1. Tab **Configuration** → **Permissions** → click pe numele rolului (link albastru, format `minilink-process-click-role-XXXXXXX`)
+> 2. Se deschide IAM — click pe **Add permissions → Attach policies**
+> 3. Caută `AWSLambdaSQSQueueExecutionRole` → bifează → click **Add permissions**
+> 4. Revino la Lambda și încearcă din nou să adaugi trigger-ul
+
 ---
 
 #### Lambda 4: minilink-cleanup-expired
@@ -684,27 +691,68 @@ Functions → Create function:
 2. Ești pe pagina "APIs" — click pe **Create API** (dreapta sus)
 3. Vei vedea mai multe tipuri de API — la **HTTP API** click pe **Build**
 
-**Configurează API-ul:**
-1. La **Integrations** click pe **Add integration**
-   - Selectează **Lambda function**
-   - **AWS Region:** eu-west-1
+---
+
+**Step 1 — Configure API:**
+
+Ești pe pagina "Configure API" cu 4 pași în stânga (Configure API → Configure routes → Define stages → Review and create).
+
+1. **API name:** scrie `minilink-api`
+2. **IP address type:** lasă `IPv4` selectat
+3. La secțiunea **Integrations** click pe **Add integration**
+   - **Integration type:** selectează `Lambda function`
+   - **AWS Region:** eu-north-1 (sau region-ul tău)
    - **Lambda function:** din dropdown selectează `minilink-create-link`
-2. **API name:** `minilink-api`
+4. Click din nou pe **Add integration** pentru a doua funcție:
+   - **Integration type:** `Lambda function`
+   - **Lambda function:** `minilink-redirect-link`
+5. Click **Next**
+
+---
+
+**Step 2 — Configure routes:**
+
+Ești pe pagina "Configure routes — optional". Nu există rute pre-configurate, le adaugi manual.
+
+1. Click pe **Add route**:
+   - **Method:** `POST`
+   - **Resource path:** `/links`
+   - **Integration target:** din dropdown selectează `minilink-create-link`
+2. Click pe **Add route** din nou:
+   - **Method:** `GET`
+   - **Resource path:** `/{shortCode}`
+   - **Integration target:** din dropdown selectează `minilink-redirect-link`
 3. Click **Next**
 
-**Configurează routes:**
-1. Ești pe pagina "Configure routes"
-2. Prima rută e deja adăugată automat — verifică că e: `POST /links` → `minilink-create-link`
-3. Click pe **Add route** pentru a doua:
-   - Method: `GET`
-   - Resource path: `/{shortCode}`
-   - Integration target: din dropdown selectează `minilink-redirect-link`
-4. Click **Next** → **Next** → **Create**
+---
 
-**Copiază endpoint-ul API:**
+**Step 3 — Define stages:**
+
+Ești pe pagina "Define stages — optional".
+
+- Lasă `$default` cu **Auto-deploy: enabled** (toggle albastru)
+- Click **Next**
+
+---
+
+**Step 4 — Review and create:**
+
+Verifică că apare:
+- **API name:** `minilink-api`, IPv4
+- **Integrations:** `minilink-create-link`, `minilink-redirect-link`
+- **Routes:** `POST /links`, `GET /{shortCode}`
+- **Stages:** `$default (Auto-deploy: enabled)`
+
+Click **Create**.
+
+---
+
+**Copiază Invoke URL:**
 - Ești acum pe pagina API-ului — în secțiunea **Details** găsești **Invoke URL**
-- Format: `https://XXXXXXXX.execute-api.eu-west-1.amazonaws.com`
-- Copiază-l, îl vei folosi la CloudFront
+- Format: `https://XXXXXXXX.execute-api.eu-north-1.amazonaws.com`
+- Copiaz-o undeva, o vei folosi la CloudFront
+
+---
 
 **Activează CORS:**
 1. Meniu stânga → click pe **CORS**
@@ -789,17 +837,32 @@ mkdir -p ~/Dev/learning-for-jobs/MiniLink/frontend
 1. Bara de căutare → scrie `S3` → click pe **S3**
 2. Click pe **Create bucket** (buton portocaliu dreapta sus)
 
-**Configurează bucket-ul:**
-- **Bucket name:** `minilink-frontend-` urmat de câteva cifre din numărul tău de cont (ex: `minilink-frontend-123456`) — numele trebuie să fie unic global
-- **AWS Region:** Europe (Ireland) eu-west-1
-- La **Block Public Access settings for this bucket**: lasă **toate bifate** (Block all public access)
+**Ești pe pagina "Create bucket" — configurează astfel:**
+
+- **Bucket type:** lasă `General purpose` selectat (primul radio button)
+- **Bucket namespace:** lasă `Global namespace` selectat
+- **Bucket name:** `minilink-frontend` — dacă primești eroare că numele e luat, adaugă câteva cifre la final ex: `minilink-frontend-6757` (numele trebuie să fie unic global)
+- **Copy settings from existing bucket:** lasă gol
+
+- **Object Ownership:** lasă `ACLs disabled (recommended)` selectat
+
+- **Block Public Access settings for this bucket:**
+  - Lasă **Block all public access** bifat (checkbox-ul principal)
   - CloudFront va accesa S3 printr-un mecanism special (OAC), nu direct public
-- Restul setărilor le lași default
-- Click **Create bucket**
+
+- **Bucket Versioning:** lasă `Disable` selectat
+
+- **Default encryption:**
+  - Lasă `Server-side encryption with Amazon S3 managed keys (SSE-S3)` selectat
+  - **Bucket Key:** lasă `Enable` selectat
+
+- Restul (Tags, Advanced settings) le lași default
+
+- Click **Create bucket** (buton portocaliu jos-dreapta)
 
 **Uploadează index.html:**
 1. Click pe bucket-ul nou creat din listă
-2. Click pe **Upload** (buton dreapta sus)
+2. Click pe **Upload** (buton portocaliu dreapta sus)
 3. Click pe **Add files**
 4. Navighează la `~/Dev/learning-for-jobs/MiniLink/frontend/index.html` și selecteaz-o
 5. Click **Upload** (buton portocaliu jos)
@@ -813,40 +876,91 @@ mkdir -p ~/Dev/learning-for-jobs/MiniLink/frontend
 1. Bara de căutare → scrie `CloudFront` → click pe **CloudFront**
 2. Click pe **Create distribution** (buton portocaliu dreapta sus)
 
-**Configurează Origin 1 (S3):**
-1. La **Origin domain** — click pe câmpul gol și va apărea un dropdown cu bucket-urile tale S3 — selectează `minilink-frontend-XXXXX.s3.eu-west-1.amazonaws.com`
-2. **Origin access:** selectează **Origin access control settings (recommended)**
-3. La **Origin access control** click pe **Create new OAC**
-4. În popup: name se completează automat → click **Create**
-5. Vei vedea un banner galben "You must update the S3 bucket policy" — ignoră momentan, revii după
+Wizardul are 4-5 pași în stânga: Get started → Specify origin → Enable security → Review and create.
 
-**Default cache behavior:**
-- **Viewer protocol policy:** selectează **Redirect HTTP to HTTPS**
-- **Cache policy:** din dropdown selectează **CachingOptimized**
-- **Origin request policy:** din dropdown selectează **CORS-S3Origin**
+---
 
-**Adaugă al doilea behavior pentru API (foarte important):**
-1. Derulează în jos la secțiunea **Cache behavior** → click pe **Add behavior**
-2. **Path pattern:** `/api/*`
-3. La **Origin** click pe **Add new origin**:
-   - **Origin domain:** copiezi hostname-ul API Gateway de la pasul 9, **fără** `https://`
-   - Format: `XXXXXXXX.execute-api.eu-west-1.amazonaws.com`
-   - **Protocol:** HTTPS only
-   - Click **Add origin**
-4. **Cache policy:** selectează **CachingDisabled** (niciodată nu cachezi apeluri API!)
-5. **Allowed HTTP methods:** selectează **GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE**
-6. Click **Create behavior**
+**Step 1 — Get started:**
 
-**Settings finale:**
-- **Default root object:** scrie `index.html`
-- Click **Create distribution** (buton portocaliu jos)
-- CloudFront va arăta status "Deploying" — **durează 3-5 minute**
+- **Distribution name:** `minilink`
+- **Description:** lasă gol
+- **Distribution type:** lasă `Single website or app` selectat (primul radio button)
+- **Domain** (Route 53 managed domain): lasă gol — nu avem domeniu custom
+- **Tags:** lasă gol
+- Click **Next**
 
-**Aplică OAC policy pe S3** (banner-ul galben de mai devreme):
-1. Pe pagina distribution-ului vei vedea un banner galben: "The S3 bucket policy needs to be updated" → click pe **Copy policy**
-2. Deschide un tab nou, navighează la **S3** → bucket-ul tău → tab **Permissions**
+---
+
+**Step 2 — Specify origin:**
+
+- **Origin type:** lasă `Amazon S3` selectat (primul radio button)
+- **S3 origin:** click pe **Browse S3** și selectează bucket-ul `minilink-frontend` creat la pasul 10
+- **Origin path:** lasă gol
+- **Settings:**
+  - Bifează **Allow private S3 bucket access to CloudFront — Recommended** (dacă nu e deja bifat)
+  - **Origin settings:** lasă `Use recommended origin settings` selectat
+  - **Cache settings:** lasă `Use recommended cache settings tailored to serving S3 content` selectat
+- Click **Next**
+
+---
+
+**Step 3 — Enable security:**
+
+- Lasă setările default (WAF poți lăsa dezactivat — costă bani)
+- Click **Next**
+
+---
+
+**Step 4 — Review and create:**
+
+- Verifică că apare bucket-ul S3 ca origin
+- Click **Create distribution**
+- CloudFront va arăta status **"Deploying"** — **durează 3-5 minute**
+
+---
+
+**Setează Default root object (fă asta primul):**
+
+Pe pagina distribution-ului (tab-ul **General** e deja selectat):
+1. În secțiunea **Settings** observi că **Default root object** e `-` (gol)
+2. Click pe **Edit** (buton dreapta sus în secțiunea Settings)
+3. Găsești câmpul **Default root object** → scrie `index.html`
+4. Click **Save changes**
+
+---
+
+**Adaugă behavior pentru API Gateway (după ce distribution-ul e creat):**
+
+Acesta e pasul cel mai important — fără el, apelurile `/api/*` nu ajung la Lambda.
+
+**Mai întâi adaugă API Gateway ca origin (tab Origins):**
+1. Click pe tab-ul **Origins**
+2. Click pe **Create origin**
+3. **Origin domain:** `4z9xy96gih.execute-api.eu-north-1.amazonaws.com` (fără `https://`)
+4. **Protocol:** HTTPS only
+5. Restul setărilor le lași default
+6. Click **Create origin**
+
+**Apoi creează behavior-ul (tab Behaviors):**
+1. Click pe tab-ul **Behaviors**
+2. Click pe **Create behavior**
+3. **Path pattern:** `/api/*`
+4. **Origin and origin groups:** din dropdown selectează origin-ul API Gateway adăugat mai sus (nu S3!)
+5. **Viewer protocol policy:** lasă `Redirect HTTP to HTTPS`
+6. **Allowed HTTP methods:** selectează `GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE` (al treilea radio button)
+7. **Cache key and origin requests:** lasă `Cache policy and origin request policy (recommended)`
+8. **Cache policy:** din dropdown schimbă în `CachingDisabled` (niciodată nu cachezi apeluri API!)
+9. **Function associations:** lasă toate `No association`
+10. Click **Create behavior**
+
+---
+
+**Aplică bucket policy pe S3:**
+1. Pe pagina distribution-ului caută un banner galben: "The S3 bucket policy needs to be updated" → click pe **Copy policy**
+   - Dacă nu e banner, mergi la tab-ul **Origins** → click pe origin-ul S3 → **Edit** → vei vedea butonul **Copy policy**
+2. Deschide un tab nou → **S3** → click pe bucket-ul `minilink-frontend` → tab **Permissions**
 3. Derulează la **Bucket policy** → click **Edit**
-4. Paste-uiește policy-ul copiat în câmpul de text (dacă era ceva acolo, șterge-l)
+4. Paste-uiește policy-ul copiat (șterge orice era acolo)
 5. Click **Save changes**
 
 **Copiază domain-ul CloudFront:**
